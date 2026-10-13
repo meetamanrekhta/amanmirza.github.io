@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Movie Details</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 800px; margin: auto; padding: 20px; background: #f7f7f9; }
+    .back { text-decoration: none; color: #e50914; font-weight: 600; }
+    h1 { margin: 12px 0 6px; }
+    .meta { color: #666; font-size: 15px; }
+    .section { background: #fff; padding: 18px; border-radius: 10px; margin-top: 18px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+    .section h3 { margin: 0 0 12px; border-bottom: 1px solid #eee; padding-bottom: 8px; }
+    .cast-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+    .cast-item { background: #f3f3f6; padding: 10px; border-radius: 6px; font-size: 14px; }
+    .cast-item strong { display: block; margin-bottom: 2px; }
+    .cast-item small { color: #777; }
+    .overview { line-height: 1.6; color: #333; }
+  </style>
+</head>
+<body>
+  <a class="back" href="index.html">← Back</a>
+  <div id="content"><p>Loading...</p></div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const movieId = parseInt(params.get('id'));
+
+    fetch('movies.json')
+      .then(r => r.json())
+      .then(data => {
+        const movie = data.find(m => m.id === movieId);
+        if (!movie) {
+          document.getElementById('content').innerHTML = '<h1>Movie not found 😕</h1>';
+          return;
+        }
+
+        const crew = movie.crew || [];
+        const cast = movie.cast || [];
+        const director = (crew.find(c => c.job === 'Director') || {}).name || 'N/A';
+        const producers = crew.filter(c => c.job === 'Producer').map(c => c.name).slice(0, 3).join(', ') || 'N/A';
+        const genres = (movie.genres || []).join(', ');
+
+        document.getElementById('content').innerHTML = `
+          <h1>${movie.title}</h1>
+          <p class="meta">
+            ⭐ ${movie.rating} | 📅 ${movie.release_date || 'N/A'} | ⏱️ ${movie.runtime} min
+          </p>
+          <p class="meta">🎭 ${genres}</p>
+
+          <div class="section">
+            <h3>📖 Overview</h3>
+            <p class="overview">${movie.overview || 'No overview available.'}</p>
+          </div>
+
+          <div class="section">
+            <h3>🎬 Crew</h3>
+            <p><strong>Director:</strong> ${director}</p>
+            <p><strong>Producers:</strong> ${producers}</p>
+          </div>
+
+          <div class="section">
+            <h3>🎭 Cast</h3>
+            <div class="cast-list">
+              ${cast.map(c => `
+                <div class="cast-item">
+                  <strong>${c.name}</strong>
+                  <small>${c.character || ''}</small>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      })
+      .catch(err => {
+        document.getElementById('content').innerHTML =
+          '<h1>⚠️ movies.json load nahi hui</h1><p>Local server chalayein.</p>';
+        console.error(err);
+      });
+  </script>
+</body>
+</html>

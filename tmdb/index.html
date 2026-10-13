@@ -1,1 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Movies</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 1100px; margin: auto; padding: 20px; background: #f7f7f9; }
+    h1 { margin-bottom: 20px; }
+    input#search {
+      width: 100%; padding: 12px; font-size: 16px;
+      margin-bottom: 24px; border: 1px solid #ccc; border-radius: 8px;
+    }
+    .count { color: #888; margin-bottom: 16px; font-size: 14px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+    .card {
+      border: 1px solid #e5e5e5; border-radius: 10px; padding: 16px;
+      text-decoration: none; color: inherit; background: #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      transition: transform 0.15s;
+    }
+    .card:hover { transform: translateY(-3px); }
+    .card h3 { margin: 0 0 8px; font-size: 17px; }
+    .card p { font-size: 13px; color: #666; margin: 4px 0; }
+    .loading { color: #888; font-size: 15px; }
+  </style>
+</head>
+<body>
+  <h1>🎬 Movies</h1>
+  <input id="search" placeholder="Search movie by name...">
+  <div class="count" id="count"></div>
+  <div id="results" class="grid">
+    <p class="loading">Loading movies...</p>
+  </div>
 
+  <script>
+    let allMovies = [];
+
+    fetch('movies.json')
+      .then(r => r.json())
+      .then(data => {
+        allMovies = data;
+        document.getElementById('count').innerText = `${data.length} movies available`;
+        render(data.slice(0, 40));
+      })
+      .catch(err => {
+        document.getElementById('results').innerHTML =
+          '<p>⚠️ movies.json load nahi hui. Local server chalayein.</p>';
+        console.error(err);
+      });
+
+    function render(list) {
+      const c = document.getElementById('results');
+      c.innerHTML = '';
+      if (!list.length) {
+        c.innerHTML = '<p>No movies found.</p>';
+        return;
+      }
+      list.forEach(m => {
+        const topCast = (m.cast || []).slice(0, 3).map(x => x.name).join(', ');
+        const director = (m.crew || []).find(c => c.job === 'Director');
+        const dirName = director ? director.name : 'N/A';
+        c.innerHTML += `
+          <a class="card" href="movie.html?id=${m.id}">
+            <h3>${m.title}</h3>
+            <p><strong>⭐ ${m.rating}</strong> | ${m.release_date || 'N/A'}</p>
+            <p><strong>Director:</strong> ${dirName}</p>
+            <p><strong>Cast:</strong> ${topCast}</p>
+          </a>
+        `;
+      });
+    }
+
+    document.getElementById('search').addEventListener('input', e => {
+      const q = e.target.value.toLowerCase().trim();
+      if (!q) return render(allMovies.slice(0, 40));
+      const filtered = allMovies.filter(m => m.title.toLowerCase().includes(q));
+      render(filtered.slice(0, 40));
+    });
+  </script>
+</body>
+</html>
