@@ -17,8 +17,10 @@
       text-decoration: none; color: inherit; background: #fff;
       box-shadow: 0 2px 6px rgba(0,0,0,0.05);
       transition: transform 0.15s;
+      display: flex; flex-direction: column;
     }
     .card:hover { transform: translateY(-3px); }
+    .card img { width: 100%; border-radius: 8px; margin-bottom: 12px; display: block; }
     .card h3 { margin: 0 0 8px; font-size: 17px; }
     .card p { font-size: 13px; color: #666; margin: 4px 0; }
     .loading { color: #888; font-size: 15px; }
@@ -59,8 +61,15 @@
         const topCast = (m.cast || []).slice(0, 3).map(x => x.name).join(', ');
         const director = (m.crew || []).find(c => c.job === 'Director');
         const dirName = director ? director.name : 'N/A';
+        
+        // पोस्टर का लिंक बनाएँ
+        const posterUrl = m.poster_path 
+          ? `https://image.tmdb.org/t/p/w342${m.poster_path}`
+          : 'https://via.placeholder.com/342x513/cccccc/333333?text=No+Poster';
+        
         c.innerHTML += `
           <a class="card" href="movie.html?id=${m.id}">
+            <img src="${posterUrl}" alt="${m.title}" loading="lazy">
             <h3>${m.title}</h3>
             <p><strong>⭐ ${m.rating}</strong> | ${m.release_date || 'N/A'}</p>
             <p><strong>Director:</strong> ${dirName}</p>
